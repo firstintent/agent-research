@@ -172,7 +172,19 @@ excore 的开发哲学（测试先行、预言机是 ground truth、断言只增
 
 ---
 
-## 10. 参考 / Prior Art
+## 10. 实操精炼（经 excore 验证，2026-06）
+
+把上文范式落到一个真实 Claude Code 仓库（excore）后，沉淀出 5 条更贴实操的硬约束：
+
+1. **AGENTS.md 为人类拥有的单一约束源**（`CLAUDE.md` 软链指向它）。跨工具（Claude Code / Codex 都读）、loop 只读。架构约束 + 不变量都进它，不再散落到独立 spec 文档。
+2. **oracle = AGENTS.md（约束/不变量）+ vectors（手算金样数据）**，且只有这两样 loop 只读；其余（实现代码、语义 doc）皆 loop 可改。边界从"spec 全家"收窄到"约束 + 数据"两点，更干净、更难被绕过。
+3. **代码为唯一事实来源**（单人/小队尤其）：散文 spec 会与代码 drift。把语义 math 收进**实现它的代码的模块 doc**（零 drift），不变量收进 AGENTS.md，向量 schema = 解析它的 serde 结构 → 删掉独立 spec 目录。**唯一不可收的是 vectors**——它是独立于实现的手算裁判，删了 loop 就能自定义真相。
+4. **每个 repo 的 loop 实例自包含**：`.loop/state.md` 不引用外部范式文档（本文档）。范式是"怎么做"的知识（可共享），实例是"这个 repo 的状态"（自包含），解耦——否则跨仓库依赖会在 clone / 迁移时断裂。
+5. **oracle 按版本目录**（`vN/{reference, vectors}`），实现追着 oracle 版本走。"版本"是业务契约的版本（v1 简单基线 → v2 生产业务 → v3 衍生品），不是代码版本；先用简单 oracle 验证架构/性能，再迁生产业务。
+
+> 净效果：一个仓库的"人类拥有层"压到两处——`AGENTS.md`（约束 + INV）+ `vN/vectors`（金样）。loop 在其外自由迭代，碰这两样必过人工门。
+
+## 11. 参考 / Prior Art
 
 - **Addy Osmani《Loop Engineering》** —— 五支柱（automations / worktrees / skills / plugins-connectors / sub-agents）+ memory；全文存档 [`loop-engineering-20260621.md`](./loop-engineering-20260621.md)。
 - **Boris Cherny（Claude Code 负责人）/ Peter Steinberger** —— "My job is to write loops" / "design loops that prompt your agents"。
@@ -180,7 +192,7 @@ excore 的开发哲学（测试先行、预言机是 ground truth、断言只增
 
 ---
 
-## 11. 总结
+## 12. 总结
 
 Prompt engineering 不是过时，而是**杠杆点上移**了：从"写好一次提示"到"设计可见、可验证、可停止的系统"。本范式的主张是——**这套系统的地基是预言机**。机械是商品件（`/goal`/`/loop`/Workflow/worktree），照搬即可；工程在于先把预言机搬到 native 档，再叠那 3 件薄薄的自著层 + 路线图 backlog。excore 因为按构造就是 oracle-first，成为检验这套范式的第一个活体。
 
